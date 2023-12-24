@@ -1,0 +1,20 @@
+{
+    "name": "information",
+    "version": "1.0.0",
+    "description": "A simple service monitoring script in Node.js",
+    "type": "module",
+    "main": "src/monitor.js",
+    "scripts": {
+        "monitor": "node src/monitor.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^0.27.2",
+        "cron": "^3.1.0",
+        "mongodb": "^4.9.0",
+        "nodemailer": "^6.7.8",
+        "redis": "^4.3.1",
+        "twilio": "^3.84.0"
+    }
+}
