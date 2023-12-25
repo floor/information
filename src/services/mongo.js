@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb'
 
-export async function checkMongoDB (config) {
+export async function checkMongo (config) {
   try {
     const { uri, username, password, database } = config
     const fullUri = `mongodb://${username}:${password}@${uri}/${database}`

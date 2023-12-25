@@ -1,8 +1,8 @@
 import { CronJob } from 'cron'
-import { checkHttpService } from './services/http.js'
-import { checkMongoDB } from './services/mongo.js'
+import { checkHttp } from './services/http.js'
+import { checkMongo } from './services/mongo.js'
 import { checkRedis } from './services/redis.js'
-import { sendAlert } from './utils/alert.js'
+import { alert } from './utils/alert.js'
 import { config } from '../config/config.js'
 
 const counters = {
@@ -14,10 +14,10 @@ const counters = {
 async function monitorServices () {
   // HTTP Services
   await Promise.all(config.services.http.map(async (service, index) => {
-    if (!await checkHttpService(service.url)) {
+    if (!await checkHttp(service.url)) {
       counters.http[index]++
       if (counters.http[index] >= service.alertThreshold) {
-        await sendAlert(`HTTP Service at ${service.url} is down!`, config.email, config.twilio)
+        await alert(`HTTP Service at ${service.url} is not responding!`, config)
         counters.http[index] = 0
       }
     } else {
@@ -27,10 +27,10 @@ async function monitorServices () {
 
   // MongoDB Services
   await Promise.all(config.services.mongodb.map(async (service, index) => {
-    if (!await checkMongoDB(service)) {
+    if (!await checkMongo(service)) {
       counters.mongodb[index]++
       if (counters.mongodb[index] >= service.alertThreshold) {
-        await sendAlert(`MongoDB Service at ${service.uri} is down!`, config.email, config.twilio)
+        await alert(`MongoDB Service at ${service.uri} is not responding!`, config)
         counters.mongodb[index] = 0
       }
     } else {
@@ -39,10 +39,10 @@ async function monitorServices () {
   }))
 
   // Redis Service
-  if (!await checkRedis(config.services.redis.host, config.services.redis.port)) {
+  if (!await checkRedis(config)) {
     counters.redis++
     if (counters.redis >= config.services.redis.alertThreshold) {
-      await sendAlert('Redis Service is down!', config.email, config.twilio)
+      await alert('Redis Service is not responding!', config.email, config.twilio)
       counters.redis = 0
     }
   } else {
@@ -50,8 +50,15 @@ async function monitorServices () {
   }
 }
 
-const job = new CronJob('*/3 * * * *', () => {
-  console.log('removing expired subscriptions')
+console.log('Monitoring services...')
+monitorServices()
+
+const job = new CronJob(config.cron.time, () => {
+  console.log('Monitoring services...')
   monitorServices()
-}, null, true)
+}, () => {
+  console.log('Every is fine!')
+  monitorServices()
+}, true)
+
 job.start()
