@@ -1,20 +1,28 @@
 import nodemailer from 'nodemailer'
 import twilio from 'twilio'
 
-export async function sendAlert (message, config) {
-  if (config.alertMethods.email) {
+export async function alert (message, config) {
+  if (config.alert.methods.email) {
     // Send Email
     const mailTransporter = nodemailer.createTransport(config.mail.auth)
-    const mailOptions = {
-      from: config.mail.auth.auth.user,
-      to: config.mail.recipient,
-      subject: 'Service Down Alert',
-      text: message
+    for (const recipient of config.mail.recipients) {
+      const mailOptions = {
+        from: config.mail.auth.auth.user,
+        to: recipient,
+        subject: 'Service Down Alert',
+        text: message
+      }
+      try {
+      // Send Email
+        await mailTransporter.sendMail(mailOptions)
+      } catch (error) {
+      // Log the error
+        console.error('Failed to send email alert:', error)
+      }
     }
-    await mailTransporter.sendMail(mailOptions)
   }
 
-  if (config.alertMethods.sms && config.twilio) {
+  if (config.alert.methods.sms && config.twilio) {
     // Twilio SMS logic
     const twilioClient = twilio(config.twilio.accountSid, config.twilio.authToken)
 
